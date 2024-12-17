@@ -5,6 +5,8 @@
 #define TASK_1_BIT (1 << 0)
 #define TASK_2_BIT (1 << 1)
 
+#define maxStringLength 15
+
 QueueHandle_t queue_task1_task2; // Task 1 -> Task 2
 QueueHandle_t five_to_two_queue;
 QueueHandle_t two_to_four_queue;
@@ -60,6 +62,7 @@ void task_2(void* pvParameters){
 
    bool task_boolean = false;
    int task_counter = 0;
+   char task_string[100];
    for(;;){
 
         if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10)) > 0) {
@@ -67,6 +70,11 @@ void task_2(void* pvParameters){
         task_counter++;
         PRINTFC_TASK_2("Counter is %d\n", task_counter);
         }
+
+        if (xQueueReceive(queue_task1_task2, &task_counter, pdMS_TO_TICKS(10)) == pdTRUE) {
+            PRINTFC_TASK_2("Task 2 received %d\n", task_counter);
+        }
+
 
 
     }
@@ -109,7 +117,7 @@ void task_4(void* pvParameters){
     for(;;){
 
     vTaskDelay(pdMS_TO_TICKS(100));
-    
+
     }
 
     vTaskDelete(NULL);
@@ -131,11 +139,9 @@ void app_main(void)
     functionData.countingSemaphore = xSemaphoreCreateCounting(2, 2);
     functionData.event_group = xEventGroupCreate();
     functionData.queue = xQueueCreate(1, sizeof(int));
+    
    
    
-  
-
-
     xTaskCreate(task_1, "Task 1", 2048, &functionData, 1, &task_handle_1); //fråga om task handle
     xTaskCreate(task_2, "Task 2", 2048, &functionData, 1, &task_handle_2); //fråga om task handle
   // xTaskCreate(function_2, "Task 2", 2048, &functionData, 1, &task_handle_2); //fråga om task handle
