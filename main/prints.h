@@ -1,6 +1,7 @@
 #ifndef PRINTS_H
 #define PRINTS_H
 #include <stdio.h>
+#include "taskfunctions.h"
 
 
 const char* red = "\033[0;31m";
