@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "prints.h"
 #include "esp_log.h"
-#include "driver/uart.h"
+
 
 #define TASK_1_BIT (1 << 0)
 #define TASK_2_BIT (1 << 1)
@@ -85,13 +85,7 @@ void task_2(void* pvParameters){
     vTaskDelete(NULL);
 }
 
-uart_config_t uart_config = {
-    .baud_rate = 115200,
-    .data_bits = UART_DATA_8_BITS,
-    .parity = UART_PARITY_DISABLE,
-    .stop_bits = UART_STOP_BITS_1,
-    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
-};
+
 // void uart_task(void *pvParameters) {
 //     uint8_t data[128];
 //     while (1) {
@@ -106,37 +100,7 @@ uart_config_t uart_config = {
 //     vTaskDelete(NULL);
 // }
 
-
-
-void uart_task(void *pvParameters) {
-    uint8_t data[128];
-    char input_buffer[128] = {0};
-    int buffer_index = 0;
-
-    while (1) {
-        int len = uart_read_bytes(UART_NUM_0, data, sizeof(data) - 1, pdMS_TO_TICKS(100));
-        if (len > 0) {
-            for (int i = 0; i < len; i++) {
-                if (data[i] == '\n' || data[i] == '\r') {  // Check for Enter key
-                    input_buffer[buffer_index] = '\0';   // Null-terminate the string
-                    printf("Received: %s\n", input_buffer);  // Echo and process the command
-                    buffer_index = 0;  // Reset the buffer for the next command
-                } else {
-                    // Add character to buffer if it's not full
-                    if (buffer_index < sizeof(input_buffer) - 1) {
-                        input_buffer[buffer_index++] = data[i];
-                    } else {
-                        // If buffer is full, reset it to avoid overflow
-                        buffer_index = 0;
-                        printf("Error: Input buffer overflow. Resetting.\n");
-                    }
-                }
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(100));  // Optional delay for periodic checks
-    }
-    vTaskDelete(NULL);  // Cleanup task if it ever exits
-}
+ 
 
 // Task_3
 // När task 1 & task 2 har en räknare som går att dela jämt dela med 10 ska task 3s räknare plussa på 1.
@@ -180,43 +144,16 @@ void task_4(void* pvParameters){
     vTaskDelete(NULL);
 }
 
-char* read_uart_data(uint8_t* data, char* input_buffer, int* buffer_index) {
 
-    int len = uart_read_bytes(UART_NUM_0, data, 128, pdMS_TO_TICKS(100));
-    if (len > 0) {
-        for (int i = 0; i < len; i++) {
-            if (data[i] == '\n' || data[i] == '\r') {  // End of input
-                input_buffer[*buffer_index] = '\0';   // Null-terminate
-               // printf("Received: %s\n", input_buffer);
-                *buffer_index = 0;                   // Reset index
-                return input_buffer;                // Return the string
-            } else {
-                if (*buffer_index < 127) {
-                    input_buffer[*buffer_index] = data[i];
-                    (*buffer_index)++;
-                } else {
-                    // Buffer overflow
-                    printf("Error: Input buffer overflow. Resetting.\n");
-                    *buffer_index = 0;               // Reset index
-                }
-            }
-        }
-    }
-    return NULL;  // No complete line received yet
-}
 
 void task_5(void* pvParameters){
 
-    uint8_t data[128];
-    char input_buffer[128] = {0};
-    int buffer_index = 0;
+  
 
     while (1) {
-        char* input_string = read_uart_data(data, input_buffer, &buffer_index);
-        if (input_string != NULL) {
-            // Process the received string here
-            printf("Processed: %s\n", input_string);
-        }
+
+      
+      
         vTaskDelay(pdMS_TO_TICKS(100));  // Optional delay
     }
     vTaskDelete(NULL);
@@ -233,11 +170,7 @@ void app_main(void)
     functionData.event_group = xEventGroupCreate();
     functionData.queue = xQueueCreate(1, sizeof(int));
     
-
-    uart_param_config(UART_NUM_0, &uart_config);
-    uart_driver_install(UART_NUM_0, 1024, 1024, 0, NULL, 0);
  
-
 
    // xTaskCreate(uart_task, "uart_task", 2048, NULL, 1, NULL);
 
